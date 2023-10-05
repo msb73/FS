@@ -1,0 +1,56 @@
+version: 'latest'
+
+services:
+  postgres:
+    container_name: HC_postgres_container
+    image: postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-toor}
+      PGDATA: /var/lib/postgresql/data
+    volumes:
+       - postgres:/var/lib/postgresql/data:rw
+    # entrypoint: [ "bash", "-c", "chmod 750 -R /var/lib/postgresql/data"] 
+    # run : [ "bash", "-c", "chmod 744 -R /var/lib/postgresql/data"] 
+    ports:
+      - "5432:5432"
+    networks:
+      - postgres
+    restart: unless-stopped
+  
+  pgadmin:
+    container_name: HC_pgadmin_container
+    image: dpage/pgadmin4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-pgadmin4@pgadmin.org}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:-admin}
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+    user: root
+    volumes:
+       - pgadmin:/var/lib/pgadmin
+    
+    ports:
+      - "${PGADMIN_PORT:-5050}:80"  
+    networks:
+      - postgres
+    restart: unless-stopped
+
+networks:
+  postgres:
+    driver: bridge
+
+volumes:
+  postgres:
+    name : hc_postgres
+    driver: local
+    driver_opts:
+      type: none
+      device: ${PWD}/postgres
+      o: bind
+  pgadmin:
+    name : hc_pgadmin
+    driver: local
+    driver_opts:
+      type: none
+      device: ${PWD}/pgadmin
+      o: bind
